@@ -6,9 +6,14 @@ const Query = {
   jobs: () => db.jobs.list(),
 };
 
+const Company = {
+  jobs: (company) =>
+    db.jobs.list().filter((job) => job.companyId === company.id),
+};
+
 const Job = {
   // first arg is the parent object
   company: (job) => db.companies.get(job.companyId),
 };
 
-module.exports = { Query, Job };
+module.exports = { Query, Company, Job };
