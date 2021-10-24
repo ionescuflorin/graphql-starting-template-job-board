@@ -1,3 +1,10 @@
 type Query {
-  greeting: String
+  jobs: [Job]
+}
+
+type Job {
+    # ! means should never be null / reqired field
+    id: ID!
+    title: String
+    description: String
 }
