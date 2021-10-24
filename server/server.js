@@ -17,7 +17,7 @@ app.use(
   expressJwt({
     secret: jwtSecret,
     credentialsRequired: false,
-    algorithms: ['RS256']
+    algorithms: ['RS256'],
   })
 );
 
