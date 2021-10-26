@@ -6,7 +6,7 @@ type Query {
 
 # is a root type like query
 type Mutation {
-  createJob(companyId: ID, title: String, description: String): ID
+  createJob(input: CreateJobInput): Job
 }
 
 type Company {
@@ -21,5 +21,12 @@ type Job {
   id: ID!
   title: String
   company: Company
+  description: String
+}
+
+# input types used as arguments
+input CreateJobInput {
+  companyId: ID
+  title: String
   description: String
 }
