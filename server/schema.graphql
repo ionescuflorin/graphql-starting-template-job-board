@@ -4,6 +4,11 @@ type Query {
   jobs: [Job]
 }
 
+# is a root type like query
+type Mutation {
+  createJob(companyId: ID, title: String, description: String): ID
+}
+
 type Company {
   id: ID!
   name: String
