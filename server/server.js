@@ -17,7 +17,7 @@ app.use(
   expressJwt({
     secret: jwtSecret,
     credentialsRequired: false,
-    algorithms: ['sha1', 'RS256', 'HS256'], 
+    algorithms: ['sha1', 'RS256', 'HS256'],
   })
 );
 
@@ -29,12 +29,12 @@ const typeDefs = gql(
 const resolvers = require('./resolvers');
 // ApolloServer Instace
 const context = ({ req }) => ({
-  method: req.method,
-})
+  user: req.user && db.users.get(req.user.sub),
+});
 const apolloServer = new ApolloServer({
   typeDefs,
   resolvers,
-  context
+  context,
 });
 // Inject the apollo server into the extisting express server
 apolloServer.applyMiddleware({ app, path: '/graphql' });
