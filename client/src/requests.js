@@ -28,6 +28,20 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
+const jobQuery = gql`
+  query JobQuery($id: ID!) {
+    job(id: $id) {
+      id
+      title
+      company {
+        id
+        name
+      }
+      description
+    }
+  }
+`;
+
 // mutation request
 export async function createJob(input) {
   const mutation = gql`
@@ -39,12 +53,29 @@ export async function createJob(input) {
           id
           name
         }
+        description
       }
     }
   `;
   const {
     data: { job },
-  } = await client.mutate({ mutation, variables: { input } });
+  } = await client.mutate({
+    mutation,
+    variables: { input },
+    update: (cache, { data }) => {
+      console.log('mutationResult', data);
+      // chose what is stored in the cache
+      // what we're doing with this "update" function is tell Apollo Client whenever you run this mutation
+      //take the data returned in the response and save it to the cache as if it was the result
+      // of running the jobQuery for that specific job id this way when we actually run a jobQuery with that job id
+      // it will find the data in the cache and avoid making a new call to the server
+      cache.writeQuery({
+        query: jobQuery,
+        variables: { id: data.job.id },
+        data,
+      });
+    },
+  });
   return job;
 }
 
@@ -69,22 +100,9 @@ export async function loadCompany(id) {
 }
 
 export async function loadJob(id) {
-  const query = gql`
-    query JobQuery($id: ID!) {
-      job(id: $id) {
-        id
-        title
-        company {
-          id
-          name
-        }
-        description
-      }
-    }
-  `;
   const {
     data: { job },
-  } = await client.query({ query, variables: { id } });
+  } = await client.query({ query: jobQuery, variables: { id } });
   return job;
 }
 
@@ -104,6 +122,6 @@ export async function loadJobs() {
   // customize caching
   const {
     data: { job },
-  } = await client.query({ query, fetchPolicy: 'no-cache'});
+  } = await client.query({ query, fetchPolicy: 'no-cache' });
   return job;
 }
