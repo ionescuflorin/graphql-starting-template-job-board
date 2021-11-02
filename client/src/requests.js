@@ -1,39 +1,32 @@
-import { ApolloClient, HttpLink, InMemoryCache } from 'apollo-boost';
+import {
+  ApolloClient,
+  ApolloLink,
+  HttpLink,
+  InMemoryCache,
+} from 'apollo-boost';
 import gql from 'graphql-tag';
 import { getAccessToken, isLoggedIn } from './auth';
 
 const enpointURL = 'http://localhost:9000/graphql';
 
+const authLink = new ApolloLink((operation, forward) => {
+  if (isLoggedIn()) {
+    operation.setContext({
+      headers: {
+        authorization: 'Bearer ' + getAccessToken(),
+      },
+    });
+  }
+  return forward(operation);
+});
+
 // APOLLO CLIENT
 const client = new ApolloClient({
   // how to connect to the server
-  link: new HttpLink({ uri: endpointURL }),
+  link: ApolloLink.from([authLink, new HttpLink({ uri: endpointURL })]),
   // cache implementation
   cache: new InMemoryCache(),
 });
-
-async function graphqlRequest(query, variables = {}) {
-  const request = {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      query,
-      variables,
-    }),
-  };
-  if (isLoggedIn()) {
-    request.headers['authorization'] = 'Bearer ' + getAccessToken();
-  }
-  const response = await fetch(enpointURL, request);
-  const responseBody = await response.json();
-  if (responseBody.errors) {
-    const message = responseBody.errors
-      .map((error) => error.message)
-      .join('\n');
-    throw new Error(message);
-  }
-  return responseBody.data;
-}
 
 // mutation request
 export async function createJob(input) {
@@ -108,8 +101,9 @@ export async function loadJobs() {
       }
     }
   `;
+  // customize caching
   const {
     data: { job },
-  } = await client.query({ query });
+  } = await client.query({ query, fetchPolicy: 'no-cache'});
   return job;
 }
